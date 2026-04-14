@@ -1,0 +1,41 @@
+# SPEC — [Project Name]
+
+> Initial specification. Written by the human, refined with AI assistance.
+> This is the "brain dump" that drives Phase A of the workflow.
+> Omit sections that don't apply. A 30-line spec for a utility is better than 150 lines with filler.
+
+## Scope & value
+
+[What problem does this solve? For whom? Describe a concrete scenario — a real user doing a real thing.
+What is explicitly OUT OF SCOPE for this version?]
+
+## Decisions & rationale
+
+[Tech stack with WHY each choice was made. Architecture pattern and why it fits.
+Key trade-offs acknowledged.]
+
+## Executable detail
+
+[Exact commands: build, test, run, deploy — copy-paste ready.
+Data model: entities, fields, relationships, constraints.
+Project structure if non-obvious.]
+
+## Hard constraints
+
+[Concrete numbers: "p95 response < 200ms", "Chrome 120+, Safari 17+".
+Security requirements. Compatibility. Budget/timeline if relevant.]
+
+## Business logic
+
+[Rules with concrete examples: IF order > 500 EUR AND new customer THEN require manual approval.
+Calculation formulas with test values. Decision trees. Edge cases with expected behavior.]
+
+## Acceptance criteria
+
+[GIVEN [context] WHEN [action] THEN [result] — for each key behavior.
+Test strategy: unit, integration, e2e. What "done" looks like.]
+
+## Domain pitfalls
+
+[What looks right but is wrong. Previous failed approaches and why they failed.
+Promising solution directions to explore. Environment-specific quirks.]

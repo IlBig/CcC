@@ -1,0 +1,48 @@
+# AGENT.md — [Project Name]
+
+> This file is the primary instruction set for any AI coding agent working on this project.
+> Read this file at session start and after every context compaction.
+
+## Project overview
+
+[1-3 sentences: what this project does, who it's for, core problem it solves]
+
+## File map
+
+```
+[tree of key files/directories with one-line descriptions]
+```
+
+## Architecture
+
+[High-level architecture: main components, data flow, key abstractions.
+Use ASCII diagrams where helpful.]
+
+## Development rules
+
+1. Keep code simple and clean — no dead code
+2. Commit after every meaningful progress
+3. Write thorough tests — run with `[test command]`
+4. Do not stop to ask for confirmation — the user is not at the keyboard
+5. Maintain a work-in-progress log in IMPLEMENTATION_NOTES.md
+6. Re-read this file after every context compaction
+7. No additional dependencies without explicit approval
+8. No marginal improvements (<1%) that add complexity
+9. Never commit unrelated/unstaged files
+10. Read source-of-truth files before modifying
+11. Keep this file aligned with the actual workflow and tests
+12. Update README.md if CLI/runtime behavior changes
+13. Do not access the internet without explicit permission
+14. Comment code only where the logic is not self-evident
+15. All project artifacts in English (AGENT.md, SPEC.md, comments, commit messages)
+
+## How to test
+
+```bash
+[exact commands to run the test suite]
+```
+
+## Domain notes
+
+[Critical domain knowledge, known pitfalls, architectural decisions that an AI agent
+must know to avoid subtle mistakes. This section is the highest-value part of this file.]
