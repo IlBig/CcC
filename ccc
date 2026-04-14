@@ -13,7 +13,7 @@
 set -euo pipefail
 
 # --- Configuration ---
-CCC_REPO="https://github.com/IlBig/CcC.git"
+CCC_REPO="${CCC_REPO:-https://github.com/IlBig/CcC.git}"
 
 # --- Colors ---
 RED='\033[0;31m'
@@ -95,6 +95,12 @@ fi
 # Check if directory already exists
 if [ -d "./$PROJECT_NAME" ]; then
     error "Directory ./$PROJECT_NAME already exists. Aborting."
+fi
+
+CAN_INITIAL_COMMIT=1
+if ! git config --get user.name >/dev/null 2>&1 || ! git config --get user.email >/dev/null 2>&1; then
+    CAN_INITIAL_COMMIT=0
+    warn "Git user.name/user.email not configured. The project will be created, but the initial commit will be skipped."
 fi
 
 # =============================================================================
@@ -188,6 +194,10 @@ Thumbs.db
 # Environment
 .env
 .env.local
+
+# Workflow artifacts
+REVIEW.md
+.claude/auto-memory/
 EOF
 
 # =============================================================================
@@ -201,8 +211,12 @@ TEMP_DIR=""
 # Step 6: Initial commit
 # =============================================================================
 
-git add -A
-git commit --quiet --no-verify -m "chore: bootstrap project with CcC workflow"
+if [ "$CAN_INITIAL_COMMIT" -eq 1 ]; then
+    git add -A
+    git commit --quiet --no-verify -m "chore: bootstrap project with CcC workflow"
+else
+    warn "Skipping initial commit. Configure git user.name and user.email, then commit the bootstrap files."
+fi
 
 # =============================================================================
 # Step 7: Summary and launch

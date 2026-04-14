@@ -56,8 +56,8 @@ A. Vision → B. Research → C. Generate → D. Review → E. Verify → F. Com
 
 ## Hooks
 
-- **pre-commit-review.sh:** Sends staged diff + `AGENT.md` to Codex (`gpt-5.4`, `--sandbox danger-full-access --approval-mode never`); outputs `REVIEW.md`; `CODEX_MODEL` env var overrides model; `MAX_DIFF_LINES=5000`; bypass with `git commit --no-verify`
-- **pre-compaction.sh:** On `PreCompact` event, injects JSON reminder to re-read `AGENT.md` and `IMPLEMENTATION_NOTES.md` after compaction; no-op if `IMPLEMENTATION_NOTES.md` absent
+- **pre-commit-review.sh:** Sends staged diff + `AGENT.md` to Codex (`gpt-5.4`, `--sandbox danger-full-access --approval-mode never`); commit is blocked if Codex is unavailable, the review fails, or the diff exceeds `MAX_DIFF_LINES`; requires a clean worktree so Codex fixes can be re-staged safely; `CODEX_MODEL`, `REVIEW_FILE`, and `MAX_DIFF_LINES` can be overridden via env vars
+- **pre-compaction.sh:** On `PreCompact`, injects a reminder to re-read `AGENT.md` and `IMPLEMENTATION_NOTES.md` after compaction; no-op if `IMPLEMENTATION_NOTES.md` absent
 
 ## Skills
 
@@ -66,6 +66,6 @@ A. Vision → B. Research → C. Generate → D. Review → E. Verify → F. Com
 | `/spec` | `SPEC.md` (+ optional `AGENT.md`) | WebSearch, WebFetch |
 | `/research` | `RESEARCH.md` (effort: max) | WebSearch, WebFetch |
 | `/review` | `REVIEW.md` | `codex exec --sandbox danger-full-access --approval-mode never` |
-| `/notes` | `IMPLEMENTATION_NOTES.md` (manual override) | git log, git diff |
+| `/notes` | `IMPLEMENTATION_NOTES.md` update helper | git log, git diff |
 | `/continue` | Summary + next-step prompt | git log/status/diff |
 <!-- END AUTO-MANAGED -->

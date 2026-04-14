@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # =============================================================================
 # Claude Code PreCompact hook handler
 #
-# Runs before context compaction to ensure IMPLEMENTATION_NOTES.md is updated.
+# Runs before context compaction to remind the agent to re-read project context.
 # This preserves working memory that would otherwise be lost during compaction.
 #
 # This script is called by Claude Code via the PreCompact hook event.
@@ -38,12 +38,12 @@ if [ ! -f "$NOTES_FILE" ]; then
 fi
 
 # --- Output context for Claude to include in the compacted context ---
-# This JSON tells Claude to add context about the notes before compaction
+# This JSON tells Claude to refresh notes and workflow rules after compaction
 cat <<EOF
 {
   "hookSpecificOutput": {
     "hookEventName": "PreCompact",
-    "additionalContext": "IMPORTANT: Context compaction is happening. IMPLEMENTATION_NOTES.md was last updated at ${TIMESTAMP}. After compaction, re-read AGENT.md and IMPLEMENTATION_NOTES.md to recover context. Use /resume if needed."
+    "additionalContext": "IMPORTANT: Context compaction is happening. IMPLEMENTATION_NOTES.md was last updated at ${TIMESTAMP}. After compaction, re-read AGENT.md and IMPLEMENTATION_NOTES.md to recover context. Use /continue if needed."
   }
 }
 EOF

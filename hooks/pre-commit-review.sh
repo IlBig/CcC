@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # =============================================================================
 # Git pre-commit hook — Codex CLI autonomous review (BLOCKING)
 #
@@ -15,8 +15,8 @@ set -euo pipefail
 
 # --- Configuration ---
 CODEX_MODEL="${CODEX_MODEL:-gpt-5.4}"
-REVIEW_FILE="REVIEW.md"
-MAX_DIFF_LINES=5000
+REVIEW_FILE="${REVIEW_FILE:-REVIEW.md}"
+MAX_DIFF_LINES="${MAX_DIFF_LINES:-5000}"
 
 # --- Colors ---
 RED='\033[0;31m'
@@ -25,10 +25,15 @@ GREEN='\033[0;32m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+fail_commit() {
+    echo -e "${RED}[pre-commit] $*${NC}"
+    echo -e "${YELLOW}Install/fix Codex, split the commit, or use 'git commit --no-verify' to bypass.${NC}"
+    exit 1
+}
+
 # --- Check if codex is installed ---
 if ! command -v codex &>/dev/null; then
-    echo -e "${YELLOW}[pre-commit] Codex CLI not found. Skipping review.${NC}"
-    exit 0
+    fail_commit "Codex CLI not found. Review is mandatory for this workflow."
 fi
 
 # --- Get staged diff ---
@@ -42,8 +47,20 @@ fi
 # --- Check diff size ---
 DIFF_LINES=$(echo "$DIFF" | wc -l)
 if [ "$DIFF_LINES" -gt "$MAX_DIFF_LINES" ]; then
-    echo -e "${YELLOW}[pre-commit] Diff too large (${DIFF_LINES} lines > ${MAX_DIFF_LINES}). Skipping review.${NC}"
-    exit 0
+    fail_commit "Diff too large (${DIFF_LINES} lines > ${MAX_DIFF_LINES}). Split the change set or raise MAX_DIFF_LINES."
+fi
+
+# --- Require a clean worktree so auto-fixes can be safely re-staged ---
+if ! git diff --quiet; then
+    fail_commit "Unstaged tracked changes detected. Stage or stash them before committing."
+fi
+
+UNTRACKED_FILES=$(git ls-files --others --exclude-standard | grep -vxF "$REVIEW_FILE" || true)
+if [ -n "$UNTRACKED_FILES" ]; then
+    echo -e "${RED}[pre-commit] Untracked files detected. Clean the worktree before commit so Codex fixes can be staged safely.${NC}"
+    echo "$UNTRACKED_FILES"
+    echo -e "${YELLOW}Add them, ignore them, or stash them first.${NC}"
+    exit 1
 fi
 
 # --- Read project context ---
@@ -79,39 +96,68 @@ FAIL = critical issues that could not be auto-fixed — commit should be blocked
 echo -e "${CYAN}[pre-commit] Running Codex review (${CODEX_MODEL})...${NC}"
 
 # --- Run Codex ---
-CODEX_OUTPUT=$(echo "$REVIEW_PROMPT" | codex exec --model "$CODEX_MODEL" --sandbox danger-full-access --approval-mode never -o "$REVIEW_FILE" - 2>&1) || true
-
-# --- Parse verdict from REVIEW.md ---
-VERDICT="PASS"
-if [ -f "$REVIEW_FILE" ]; then
-    VERDICT_LINE=$(grep -i "^VERDICT:" "$REVIEW_FILE" | tail -1 || echo "VERDICT: PASS")
-    if echo "$VERDICT_LINE" | grep -qi "FAIL"; then
-        VERDICT="FAIL"
-    elif echo "$VERDICT_LINE" | grep -qi "WARN"; then
-        VERDICT="WARN"
-    fi
+REVIEW_FILE_TRACKED=0
+if git ls-files --error-unmatch -- "$REVIEW_FILE" >/dev/null 2>&1; then
+    REVIEW_FILE_TRACKED=1
 fi
+
+TMP_REVIEW_FILE=$(mktemp "${TMPDIR:-/tmp}/codex-review.XXXXXX")
+cleanup() {
+    rm -f "$TMP_REVIEW_FILE"
+}
+trap cleanup EXIT
+
+set +e
+echo "$REVIEW_PROMPT" | codex exec --model "$CODEX_MODEL" --sandbox danger-full-access --approval-mode never -o "$TMP_REVIEW_FILE" - 2>&1
+CODEX_STATUS=$?
+set -e
+
+if [ -s "$TMP_REVIEW_FILE" ]; then
+    mv "$TMP_REVIEW_FILE" "$REVIEW_FILE"
+fi
+
+if [ "$CODEX_STATUS" -ne 0 ]; then
+    fail_commit "Codex review process failed (exit code ${CODEX_STATUS})."
+fi
+
+if [ ! -f "$REVIEW_FILE" ]; then
+    fail_commit "Codex review did not produce ${REVIEW_FILE}."
+fi
+
+# --- Parse verdict from the fresh review output ---
+VERDICT_LINE=$(grep -i "^VERDICT:" "$REVIEW_FILE" | tail -1 || true)
+if [ -z "$VERDICT_LINE" ]; then
+    fail_commit "Review output is missing the VERDICT line."
+fi
+
+VERDICT=""
+if echo "$VERDICT_LINE" | grep -qiE '^VERDICT:[[:space:]]*FAIL([[:space:]]|$)'; then
+    VERDICT="FAIL"
+elif echo "$VERDICT_LINE" | grep -qiE '^VERDICT:[[:space:]]*WARN([[:space:]]|$)'; then
+    VERDICT="WARN"
+elif echo "$VERDICT_LINE" | grep -qiE '^VERDICT:[[:space:]]*PASS([[:space:]]|$)'; then
+    VERDICT="PASS"
+else
+    fail_commit "Unrecognized verdict line: ${VERDICT_LINE}"
+fi
+
+restage_codex_changes() {
+    git add -A
+    if [ "$REVIEW_FILE_TRACKED" -eq 0 ]; then
+        git rm --cached -q --ignore-unmatch -- "$REVIEW_FILE" 2>/dev/null || true
+    fi
+}
 
 # --- Act on verdict ---
 case "$VERDICT" in
     "PASS")
         echo -e "${GREEN}[pre-commit] Review PASSED. Committing.${NC}"
-        # Re-stage any files Codex may have fixed
-        git diff --name-only | while read -r file; do
-            if git diff --cached --name-only | grep -q "^${file}$"; then
-                git add "$file"
-            fi
-        done
+        restage_codex_changes
         exit 0
         ;;
     "WARN")
         echo -e "${YELLOW}[pre-commit] Review WARNING. See ${REVIEW_FILE} for details. Committing anyway.${NC}"
-        # Re-stage any files Codex may have fixed
-        git diff --name-only | while read -r file; do
-            if git diff --cached --name-only | grep -q "^${file}$"; then
-                git add "$file"
-            fi
-        done
+        restage_codex_changes
         exit 0
         ;;
     "FAIL")

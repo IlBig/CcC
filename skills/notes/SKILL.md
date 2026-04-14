@@ -1,7 +1,7 @@
 ---
 name: notes
 description: Update IMPLEMENTATION_NOTES.md with current session progress. Captures what was done, decisions made, and next steps. Critical for surviving context compaction.
-allowed-tools: Read Write Edit Bash(git log *) Bash(git diff *)
+allowed-tools: Read Write Edit Bash(cat *) Bash(git log *) Bash(git diff *)
 ---
 
 # Update implementation notes

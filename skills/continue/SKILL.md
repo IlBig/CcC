@@ -1,7 +1,7 @@
 ---
 name: continue
 description: Reconstruct full project context after context compaction or session restart. Reads all key project files and recent git history to rebuild working memory. Always the first command when resuming work.
-allowed-tools: Read Bash(git log *) Bash(git diff *) Bash(git status *) Bash(ls *)
+allowed-tools: Read Bash(cat *) Bash(git log *) Bash(git diff *) Bash(git status *) Bash(ls *)
 ---
 
 # Context recovery

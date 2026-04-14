@@ -3,7 +3,7 @@
 > A structured coding workflow for IT consulting, inspired by antirez's automatic programming method.
 > Adapted for multi-project, multi-client environments where reproducibility matters.
 >
-> **Version:** 2.1 — April 2026
+> **Version:** 2.2 — April 2026
 > **Stack-agnostic** — pair with stack-specific addenda for web/mobile/desktop
 
 ---
@@ -140,7 +140,7 @@ The initial specification — the human "brain dump" that drives Phase A. Create
 
 ### IMPLEMENTATION_NOTES.md
 
-Living diary that survives context compaction. **Updated automatically** by the system: the agent updates it after every commit (Rule 5), and the PreCompact hook ensures it is current before context compaction. The `/notes` skill remains available as a manual override.
+Living diary that survives context compaction. It must be kept current by the agent during development. The PreCompact hook injects a reminder to re-read it after compaction, and `/notes` is available to update it explicitly when needed.
 
 Templates for all files are in `templates/`.
 
@@ -215,7 +215,7 @@ Session start:    /continue
 New feature:      /spec "feature X" → /research "tech Y" (if needed) → generate → commit → read REVIEW.md
 Small feature:    mini-spec inline → generate → commit → read REVIEW.md
 Bug fix:          generate fix → commit → read REVIEW.md → update AGENT.md Known Pitfalls
-Session end:      (IMPLEMENTATION_NOTES.md is updated automatically)
+Session end:      update IMPLEMENTATION_NOTES.md if the session state changed
 ```
 
 ### Phase A — Vision
@@ -255,7 +255,7 @@ Claude generates code following the spec and the project rules in AGENT.md. This
 Key behaviors during generation:
 - Follow the 15 hard rules in AGENT.md
 - Commit after every meaningful progress
-- Update IMPLEMENTATION_NOTES.md automatically after every commit (Rule 5)
+- Keep IMPLEMENTATION_NOTES.md current before commit/compaction (Rule 5)
 - Do not stop to ask for confirmation
 
 ### Phase D — Cross-review
@@ -264,7 +264,7 @@ Key behaviors during generation:
 **Tool:** Git pre-commit hook (automatic) or `/review` (manual)
 **Output:** `REVIEW.md`
 
-Codex reviews every commit automatically via the pre-commit hook. It runs in `--sandbox danger-full-access --approval-mode never` mode: it can read code, identify issues, and apply fixes directly.
+Codex reviews every commit automatically via the pre-commit hook. It runs in `--sandbox danger-full-access --approval-mode never` mode: it can read code, identify issues, and apply fixes directly. The hook is fail-closed: if Codex is unavailable, the review fails, or the staged diff is too large, the commit is blocked unless you bypass with `--no-verify`.
 
 If the review finds critical unfixable issues → commit is blocked.
 If minor issues are found → Codex fixes them and the commit proceeds.
@@ -317,9 +317,9 @@ cp -r skills/* ~/.claude/skills/
 
 **`/research <topic>`** — Autonomous research agent. Searches official docs, API references, best practices, known issues. Produces RESEARCH.md dossier. Uses `effort: max` for thorough research.
 
-**`/review`** — Manual Codex cross-review. Sends project context + recent diff to Codex CLI in `--sandbox danger-full-access --approval-mode never` mode. Codex can fix issues directly. Output to REVIEW.md.
+**`/review`** — Manual Codex cross-review. Sends the project context already gathered by the skill to Codex CLI in `--sandbox danger-full-access --approval-mode never` mode. Codex can fix issues directly. Output to REVIEW.md.
 
-**`/notes`** — Manual override for IMPLEMENTATION_NOTES.md. Normally the agent updates notes automatically after every commit (Rule 5). Use `/notes` only when you want to force an update outside the commit cycle (e.g., before a long break, or to capture a decision that didn't result in code changes).
+**`/notes`** — Helper for updating IMPLEMENTATION_NOTES.md. Use it when you want to capture the current state explicitly (e.g., before a long break, after a design decision, or before compaction).
 
 **`/continue`** — Context recovery after compaction or session restart. Reads AGENT.md, SPEC.md, IMPLEMENTATION_NOTES.md, RESEARCH.md, and git history. Summarizes current state and asks where to continue. **This is always the first command when resuming work.**
 
@@ -337,9 +337,9 @@ Codex CLI is **never used directly by the human** in this workflow. It is invoke
 
 ```bash
 # Full-auto review (used by hook and /review skill)
-codex exec --model gpt-5.4 --sandbox danger-full-access --approval-mode never -o REVIEW.md - <<'PROMPT'
-[review prompt with context]
-PROMPT
+{
+  printf '%s\n' "You are a senior code reviewer. Use the surrounding project context and recent diff to review the change set."
+} | codex exec --model gpt-5.4 --sandbox danger-full-access --approval-mode never -o REVIEW.md -
 
 # Quick one-shot question to Codex
 codex exec --model gpt-5.4 "explain the auth flow in this project"
@@ -370,7 +370,7 @@ These rules go in every project's AGENT.md. They are the operating contract betw
 2. **Commit after every meaningful progress.** Don't accumulate large uncommitted changes. Each commit should be a coherent unit.
 3. **Write thorough tests. Run them with the project's test runner.** Tests are not optional. Every code modification must be tested.
 4. **Do not stop to ask for confirmation — the user is not at the keyboard.** Make the best decision and keep going. Log decisions in IMPLEMENTATION_NOTES.md.
-5. **Maintain a work-in-progress log in IMPLEMENTATION_NOTES.md — automatically.** Update it after every commit and before every context compaction. This is not optional and must not depend on human invocation. The `/notes` skill exists as a manual override only.
+5. **Maintain a work-in-progress log in IMPLEMENTATION_NOTES.md.** Update it during development, especially before commit boundaries and before context compaction. The `/notes` skill exists to make that update explicit and repeatable.
 6. **Re-read AGENT.md after every context compaction.** Your first action after compaction is to reload the project rules.
 7. **No additional dependencies without explicit approval.** Prefer standard library. If a dependency is needed, document why.
 8. **No marginal improvements (<1%) that add complexity.** If the improvement isn't clearly worth the added complexity, skip it.
@@ -404,12 +404,14 @@ chmod +x .git/hooks/pre-commit
 3. Sends both to Codex CLI (`gpt-5.4`, `--sandbox danger-full-access --approval-mode never`)
 4. Codex reviews and can auto-fix issues
 5. Outputs verdict: PASS / WARN / FAIL
-6. FAIL → commit blocked. WARN/PASS → commit proceeds.
+6. FAIL, Codex execution errors, or oversized diffs → commit blocked. WARN/PASS → commit proceeds.
 7. Saves full review to REVIEW.md
 
 **Configuration:**
 - `CODEX_MODEL` env var overrides the model (default: `gpt-5.4`)
-- `MAX_DIFF_LINES` controls max diff size before skip (default: 5000)
+- `REVIEW_FILE` env var overrides the review output path (default: `REVIEW.md`)
+- `MAX_DIFF_LINES` controls the max diff size before the hook blocks the commit (default: 5000)
+- Worktree must be clean except for staged changes and ignored files, so Codex fixes can be re-staged safely
 - `git commit --no-verify` bypasses the hook for emergencies
 
 ### Claude Code PreCompact hook
@@ -436,17 +438,17 @@ chmod +x .git/hooks/pre-commit
 }
 ```
 
-**What it does:** Injects a reminder into the compacted context telling Claude to re-read AGENT.md and IMPLEMENTATION_NOTES.md after compaction.
+**What it does:** Injects a reminder into the compacted context telling Claude to re-read AGENT.md and IMPLEMENTATION_NOTES.md after compaction. It does not edit the notes file for you.
 
-### Automatic IMPLEMENTATION_NOTES.md updates
+### IMPLEMENTATION_NOTES discipline
 
-IMPLEMENTATION_NOTES.md is updated automatically through two mechanisms:
+IMPLEMENTATION_NOTES.md stays useful only if it is actively maintained:
 
-1. **Rule 5 in AGENT.md** — The agent must update notes after every commit. This is a hard rule, not a suggestion. The agent logs: what was done, decisions made, and next steps.
+1. **Rule 5 in AGENT.md** — The agent should update notes at meaningful checkpoints: before commit boundaries, before context compaction, and whenever decisions or blockers change.
 
-2. **PreCompact hook** — Before context compaction, the hook injects a reminder. After compaction, the agent re-reads AGENT.md and IMPLEMENTATION_NOTES.md to recover context.
+2. **`/notes` skill** — Use it to generate a focused update from the current git state when you want an explicit checkpoint.
 
-The human never needs to call `/notes` manually during normal workflow. The skill exists as an override for edge cases (e.g., capturing a design decision that didn't result in code changes, or before a long break).
+3. **PreCompact hook** — Before context compaction, the hook injects a reminder so the next session re-reads AGENT.md and IMPLEMENTATION_NOTES.md.
 
 ---
 
@@ -456,7 +458,7 @@ The human never needs to call `/notes` manually during normal workflow. The skil
 |---|---|---|
 | Accepting AI output without reading it | You're vibe coding, not programming | Read every line. Question what you don't understand. |
 | Skipping SPEC.md ("just start coding") | No spec = no direction = garbage output | 10 minutes on `/spec` saves hours of rework |
-| Not updating IMPLEMENTATION_NOTES.md | Context compaction erases working memory | Automated via Rule 5 (agent updates after every commit). If the agent fails to do this, it is violating a hard rule — fix the AGENT.md or the agent configuration. |
+| Not updating IMPLEMENTATION_NOTES.md | Context compaction erases working memory | Treat notes like a required checkpoint artifact. Update them before commit/compaction, or run `/notes` explicitly. |
 | Ignoring REVIEW.md | The second opinion exists for a reason | Read every review. Act on WARN and FAIL. |
 | Massive uncommitted changes | Context loss, hard to review, hard to revert | Commit every meaningful progress (Rule 2) |
 | Adding dependencies casually | Dependency = maintenance burden × project count | Justify in IMPLEMENTATION_NOTES.md (Rule 7) |
@@ -476,7 +478,7 @@ The human never needs to call `/notes` manually during normal workflow. The skil
 ### During work
 - [ ] Follow the cycle appropriate to the work type (full for features, short for bug fixes)
 - [ ] Commit regularly (small, coherent commits)
-- [ ] IMPLEMENTATION_NOTES.md is updated automatically after each commit (Rule 5)
+- [ ] IMPLEMENTATION_NOTES.md is current before commit/compaction (Rule 5)
 - [ ] Read REVIEW.md after each commit
 - [ ] After fixing a complex bug, add it to AGENT.md Known Pitfalls
 

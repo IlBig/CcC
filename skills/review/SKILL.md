@@ -33,17 +33,11 @@ Run the following command to launch Codex as an independent reviewer:
 codex exec --model gpt-5.4 --sandbox danger-full-access --approval-mode never -o REVIEW.md - <<'PROMPT'
 You are a senior code reviewer. You have full autonomy to read, analyze, and fix code.
 
-## Project context
-$(cat AGENT.md 2>/dev/null)
-
 ## Your task
-1. Review the recent changes shown below
+1. Use the project context, recent changes, and recent history already included earlier in this prompt
 2. Check for: bugs, security issues, performance problems, style violations, missing tests
 3. If you find fixable issues, fix them directly in the source files
 4. Write a structured review report
-
-## Recent diff
-$(git diff HEAD~1 2>/dev/null || git diff 2>/dev/null)
 
 ## Review format
 Rate each category: PASS / WARN / FAIL
