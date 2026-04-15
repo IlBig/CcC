@@ -17,13 +17,19 @@ Read AGENT.md if it exists in the current directory for additional context.
 cat AGENT.md 2>/dev/null || echo "No AGENT.md found"
 ```
 
+### Detect user language
+
+```!
+defaults read -g AppleLocale 2>/dev/null || echo "${LANG:-en_US}" | cut -d. -f1
+```
+
 ## Step 2 — Ask targeted questions
 
 Ask the user these questions **one at a time**. Wait for each answer before proceeding.
 For each question, explain WHY you are asking it and give a concrete EXAMPLE of a good answer.
 Adapt based on answers — skip questions already answered by context, topic argument, or previous answers.
 
-**IMPORTANT — Language:** The questions, rationale, and examples below are written in English as reference. You MUST translate them and converse entirely in the user's language (detect it from the topic argument or conversation context). Only the final SPEC.md output file is written in English.
+**IMPORTANT — Language:** The system locale detected above determines the conversation language. Converse with the user ENTIRELY in that language — questions, rationale, examples, follow-ups, everything. The questions below are reference material in English; translate them naturally. Only the final SPEC.md output file is written in English.
 
 **Core questions (always ask 1-4):**
 
