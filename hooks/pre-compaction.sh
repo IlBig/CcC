@@ -43,7 +43,7 @@ cat <<EOF
 {
   "hookSpecificOutput": {
     "hookEventName": "PreCompact",
-    "additionalContext": "IMPORTANT: Context compaction is happening. IMPLEMENTATION_NOTES.md was last updated at ${TIMESTAMP}. After compaction, re-read AGENT.md and IMPLEMENTATION_NOTES.md to recover context. Use /continue if needed."
+    "additionalContext": "IMPORTANT: Context compaction is happening. IMPLEMENTATION_NOTES.md was last updated at ${TIMESTAMP}. After compaction, re-read AGENTS.md and IMPLEMENTATION_NOTES.md to recover context. Use /continue if needed."
   }
 }
 EOF

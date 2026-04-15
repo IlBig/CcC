@@ -8,10 +8,10 @@ allowed-tools: Read Bash(cat *) Bash(git log *) Bash(git diff *) Bash(git status
 
 Re-read all project context files to reconstruct working memory.
 
-## AGENT.md (project rules and architecture)
+## AGENTS.md (project rules and architecture)
 
 ```!
-cat AGENT.md 2>/dev/null || echo "No AGENT.md found — check if the project has been initialized"
+cat AGENTS.md 2>/dev/null || echo "No AGENTS.md found — check if the project has been initialized"
 ```
 
 ## SPEC.md (project specification)
@@ -48,12 +48,12 @@ git diff --stat 2>/dev/null || echo "No uncommitted changes"
 
 ## Your task
 
-Converse with the user in the language specified in AGENT.md. Based on the files above:
+Converse with the user in the language specified in AGENTS.md. Based on the files above:
 
 1. **Summarize the current state** of the project in 3-5 sentences
 2. **Identify where work left off** from IMPLEMENTATION_NOTES.md
 3. **List the next steps** that need to happen
 4. **Flag any open questions** or blockers from the notes
-5. **Confirm the development rules** from AGENT.md are understood
+5. **Confirm the development rules** from AGENTS.md are understood
 
 Then ask the user: "Context recovered. Ready to continue from [last checkpoint]. Shall I proceed with [next step], or do you want to redirect?"

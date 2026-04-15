@@ -11,7 +11,7 @@ effort: max
 ## Context
 
 ```!
-cat AGENT.md 2>/dev/null || echo "No AGENT.md found"
+cat AGENTS.md 2>/dev/null || echo "No AGENTS.md found"
 ```
 
 ```!
@@ -26,7 +26,7 @@ This dossier will be used by a coding agent (Claude Code) as reference material 
 
 ## Research process
 
-1. **Identify the technologies** mentioned in the topic and in SPEC.md/AGENT.md if they exist
+1. **Identify the technologies** mentioned in the topic and in SPEC.md/AGENTS.md if they exist
 2. **For each technology**, search and fetch:
    - Official documentation (getting started, API reference, configuration)
    - Best practices and recommended patterns
@@ -70,7 +70,7 @@ Write `RESEARCH.md` in the project root with this structure:
 
 ## Rules
 
-- Converse with the user in the language specified in AGENT.md. Write output files in English.
+- Converse with the user in the language specified in AGENTS.md. Write output files in English.
 - Always cite sources with URLs
 - Distinguish between verified facts and inferences
 - If you cannot access a source, say so explicitly — do not invent content

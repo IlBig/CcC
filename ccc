@@ -146,7 +146,7 @@ mkdir -p .claude/skills/continue
 mkdir -p hooks
 
 # --- Copy and transform templates ---
-sed "s|\[Project Name\]|$PROJECT_NAME|g; s|\[Conversation Language\]|$USER_LANG|g" "$SRC/templates/AGENT.md.template" > AGENT.md
+sed "s|\[Project Name\]|$PROJECT_NAME|g; s|\[Conversation Language\]|$USER_LANG|g" "$SRC/templates/AGENTS.md.template" > AGENTS.md
 cp "$SRC/templates/CLAUDE.md.template" CLAUDE.md
 sed "s|\[Project Name\]|$PROJECT_NAME|g" "$SRC/templates/SPEC.md.template" > SPEC.md
 sed "s|\[Project Name\]|$PROJECT_NAME|g" "$SRC/templates/IMPLEMENTATION_NOTES.md.template" > IMPLEMENTATION_NOTES.md
@@ -164,8 +164,8 @@ chmod +x .git/hooks/pre-commit
 cp "$SRC/hooks/pre-compaction.sh" hooks/pre-compaction.sh
 chmod +x hooks/pre-compaction.sh
 
-# --- Create AGENTS.md symlink (Codex compatibility) ---
-ln -s AGENT.md AGENTS.md
+# --- Create CLAUDE.md redirect ---
+# CLAUDE.md is copied from template (contains "See AGENTS.md")
 
 # --- Generate .claude/settings.json ---
 cat > .claude/settings.json <<'EOF'
@@ -235,9 +235,8 @@ echo ""
 success "Project '$PROJECT_NAME' created successfully!"
 echo ""
 info "Structure:"
-echo "  AGENT.md                — AI instruction file (primary)"
-echo "  CLAUDE.md               — Redirect to AGENT.md"
-echo "  AGENTS.md               — Symlink to AGENT.md (Codex)"
+echo "  AGENTS.md               — AI instruction file (primary, read by Codex + Claude)"
+echo "  CLAUDE.md               — Redirect to AGENTS.md (for Claude Code)"
 echo "  SPEC.md                 — Project specification template"
 echo "  IMPLEMENTATION_NOTES.md — Session diary"
 echo "  .claude/skills/         — Workflow skills (5)"

@@ -101,9 +101,9 @@ Every project using this workflow has these files:
 
 ```
 project/
-├── AGENT.md                    # Primary instruction file for any AI agent
-├── CLAUDE.md                   # Redirect → "See AGENT.md"
-├── AGENTS.md                   # Symlink → AGENT.md (Codex compatibility)
+├── AGENTS.md                    # Primary instruction file for any AI agent
+├── CLAUDE.md                   # Redirect → "See AGENTS.md"
+├── AGENTS.md                   # Symlink → AGENTS.md (Codex compatibility)
 ├── SPEC.md                     # Initial specification (Phase A output)
 ├── IMPLEMENTATION_NOTES.md     # Living development diary
 ├── RESEARCH.md                 # Documentation dossier (Phase B output, optional)
@@ -116,7 +116,7 @@ project/
 └── .git/hooks/pre-commit       # Automated Codex review hook
 ```
 
-### AGENT.md (primary)
+### AGENTS.md (primary)
 
 The single source of truth for any AI agent working on this project. Contains:
 - Project overview
@@ -126,13 +126,13 @@ The single source of truth for any AI agent working on this project. Contains:
 - Testing instructions
 - Domain-specific notes
 
-Named `AGENT.md` (not `CLAUDE.md`) to be agent-agnostic — works with Claude, Codex, or any future AI tool.
+Named `AGENTS.md` (not `CLAUDE.md`) to be agent-agnostic — works with Claude, Codex, or any future AI tool.
 
 ### CLAUDE.md (redirect)
 
-Contains only: `See AGENT.md`
+Contains only: `See AGENTS.md`
 
-This ensures Claude Code picks up the project instructions automatically (it looks for CLAUDE.md by default), while AGENT.md remains the single source of truth.
+This ensures Claude Code picks up the project instructions automatically (it looks for CLAUDE.md by default), while AGENTS.md remains the single source of truth.
 
 ### SPEC.md
 
@@ -179,7 +179,7 @@ Feature N:  A → B → C → D → E → F
 | E — Verify | Full | Full |
 | F — Commit | Automatic | Automatic |
 
-AGENT.md is written once at project start and **updated incrementally** as the project evolves — the file map grows, known pitfalls accumulate, behavioral contracts are added. It is never rewritten from scratch.
+AGENTS.md is written once at project start and **updated incrementally** as the project evolves — the file map grows, known pitfalls accumulate, behavioral contracts are added. It is never rewritten from scratch.
 
 #### Bug fix (short cycle)
 
@@ -191,12 +191,12 @@ Bug fix:  C → D → E → F
 
 - No spec needed — the bug is already an observable deviation from expected behavior
 - No research needed — the technologies are already known
-- **C**: Claude reads AGENT.md (which has behavioral contracts and known pitfalls), fixes the bug
+- **C**: Claude reads AGENTS.md (which has behavioral contracts and known pitfalls), fixes the bug
 - **D**: Codex reviews automatically at commit
 - **E**: Human reads the fix and the review
 - **F**: Commit proceeds if review passes
 
-**After fixing a complex bug**, add it to AGENT.md's "Known Pitfalls" section — this prevents the agent from reintroducing it in the future. This is exactly what antirez does in iris.c and qwen-asr.
+**After fixing a complex bug**, add it to AGENTS.md's "Known Pitfalls" section — this prevents the agent from reintroducing it in the future. This is exactly what antirez does in iris.c and qwen-asr.
 
 #### Small change (minimal cycle)
 
@@ -214,7 +214,7 @@ Same as bug fix. No spec, no research. The pre-commit review still runs.
 Session start:    /continue
 New feature:      /spec "feature X" → /research "tech Y" (if needed) → generate → commit → read REVIEW.md
 Small feature:    mini-spec inline → generate → commit → read REVIEW.md
-Bug fix:          generate fix → commit → read REVIEW.md → update AGENT.md Known Pitfalls
+Bug fix:          generate fix → commit → read REVIEW.md → update AGENTS.md Known Pitfalls
 Session end:      update IMPLEMENTATION_NOTES.md if the session state changed
 ```
 
@@ -248,12 +248,12 @@ Claude searches official documentation, API references, best practices, and know
 
 **Who:** Claude Code
 **Tool:** Normal Claude Code session
-**Input:** AGENT.md + SPEC.md + RESEARCH.md
+**Input:** AGENTS.md + SPEC.md + RESEARCH.md
 
-Claude generates code following the spec and the project rules in AGENT.md. This is a normal Claude Code session — no special skill needed.
+Claude generates code following the spec and the project rules in AGENTS.md. This is a normal Claude Code session — no special skill needed.
 
 Key behaviors during generation:
-- Follow the 15 hard rules in AGENT.md
+- Follow the 15 hard rules in AGENTS.md
 - Commit after every meaningful progress
 - Keep IMPLEMENTATION_NOTES.md current before commit/compaction (Rule 5)
 - Do not stop to ask for confirmation
@@ -313,7 +313,7 @@ cp -r skills/* ~/.claude/skills/
 
 ### Skill details
 
-**`/spec <topic>`** — Guided specification creation. Claude asks up to 7 targeted questions — problem & users, acceptance criteria, out-of-scope boundaries, stack with rationale, domain truth (business rules + data), hard constraints with numbers, and pitfalls with promising directions. Each question includes WHY it matters and a concrete example of a good answer. Questions scale to project complexity — small utilities get fewer. Generates SPEC.md. Optionally scaffolds AGENT.md.
+**`/spec <topic>`** — Guided specification creation. Claude asks up to 7 targeted questions — problem & users, acceptance criteria, out-of-scope boundaries, stack with rationale, domain truth (business rules + data), hard constraints with numbers, and pitfalls with promising directions. Each question includes WHY it matters and a concrete example of a good answer. Questions scale to project complexity — small utilities get fewer. Generates SPEC.md. Optionally scaffolds AGENTS.md.
 
 **`/research <topic>`** — Autonomous research agent. Searches official docs, API references, best practices, known issues. Produces RESEARCH.md dossier. Uses `effort: max` for thorough research.
 
@@ -321,7 +321,7 @@ cp -r skills/* ~/.claude/skills/
 
 **`/notes`** — Helper for updating IMPLEMENTATION_NOTES.md. Use it when you want to capture the current state explicitly (e.g., before a long break, after a design decision, or before compaction).
 
-**`/continue`** — Context recovery after compaction or session restart. Reads AGENT.md, SPEC.md, IMPLEMENTATION_NOTES.md, RESEARCH.md, and git history. Summarizes current state and asks where to continue. **This is always the first command when resuming work.**
+**`/continue`** — Context recovery after compaction or session restart. Reads AGENTS.md, SPEC.md, IMPLEMENTATION_NOTES.md, RESEARCH.md, and git history. Summarizes current state and asks where to continue. **This is always the first command when resuming work.**
 
 ---
 
@@ -350,19 +350,19 @@ codex --model gpt-5.4
 
 ### AGENTS.md
 
-If you want Codex to follow project-specific instructions (like Claude follows AGENT.md), create an `AGENTS.md` file in the project root. Codex CLI reads this automatically.
+If you want Codex to follow project-specific instructions (like Claude follows AGENTS.md), create an `AGENTS.md` file in the project root. Codex CLI reads this automatically.
 
-Recommendation: symlink AGENTS.md to AGENT.md to keep a single source of truth:
+Recommendation: symlink AGENTS.md to AGENTS.md to keep a single source of truth:
 
 ```bash
-ln -s AGENT.md AGENTS.md
+ln -s AGENTS.md AGENTS.md
 ```
 
 ---
 
 ## 6. Hard rules
 
-These rules go in every project's AGENT.md. They are the operating contract between the human and the AI agents.
+These rules go in every project's AGENTS.md. They are the operating contract between the human and the AI agents.
 
 ### From antirez (verified from public repositories)
 
@@ -371,19 +371,19 @@ These rules go in every project's AGENT.md. They are the operating contract betw
 3. **Write thorough tests. Run them with the project's test runner.** Tests are not optional. Every code modification must be tested.
 4. **Do not stop to ask for confirmation — the user is not at the keyboard.** Make the best decision and keep going. Log decisions in IMPLEMENTATION_NOTES.md.
 5. **Maintain a work-in-progress log in IMPLEMENTATION_NOTES.md.** Update it during development, especially before commit boundaries and before context compaction. The `/notes` skill exists to make that update explicit and repeatable.
-6. **Re-read AGENT.md after every context compaction.** Your first action after compaction is to reload the project rules.
+6. **Re-read AGENTS.md after every context compaction.** Your first action after compaction is to reload the project rules.
 7. **No additional dependencies without explicit approval.** Prefer standard library. If a dependency is needed, document why.
 8. **No marginal improvements (<1%) that add complexity.** If the improvement isn't clearly worth the added complexity, skip it.
 9. **Never commit unrelated or unstaged files.** Each commit is clean and focused. Stage deliberately.
 10. **Read source-of-truth files before modifying.** Don't guess what a file contains — read it first.
-11. **Keep AGENT.md aligned with the actual workflow and tests.** If the workflow changes, AGENT.md must be updated.
+11. **Keep AGENTS.md aligned with the actual workflow and tests.** If the workflow changes, AGENTS.md must be updated.
 12. **Update README.md if CLI or runtime behavior changes.** User-facing changes require documentation.
 
 ### Added for consulting context
 
 13. **Do not access the internet without explicit permission.** This prevents unintended data leakage and ensures reproducible builds.
 14. **Comment code only where the logic is not self-evident.** Don't over-comment obvious code. Do comment non-obvious decisions.
-15. **All project artifacts in English.** AGENT.md, SPEC.md, comments, commit messages — all in English. Conversation with the user can be in any language.
+15. **All project artifacts in English.** AGENTS.md, SPEC.md, comments, commit messages — all in English. Conversation with the user can be in any language.
 
 ---
 
@@ -400,7 +400,7 @@ chmod +x .git/hooks/pre-commit
 
 **What it does:**
 1. Captures `git diff --cached` (staged changes)
-2. Reads AGENT.md for project context
+2. Reads AGENTS.md for project context
 3. Sends both to Codex CLI (`gpt-5.4`, `--sandbox danger-full-access --approval-mode never`)
 4. Codex reviews and can auto-fix issues
 5. Outputs verdict: PASS / WARN / FAIL
@@ -438,17 +438,17 @@ chmod +x .git/hooks/pre-commit
 }
 ```
 
-**What it does:** Injects a reminder into the compacted context telling Claude to re-read AGENT.md and IMPLEMENTATION_NOTES.md after compaction. It does not edit the notes file for you.
+**What it does:** Injects a reminder into the compacted context telling Claude to re-read AGENTS.md and IMPLEMENTATION_NOTES.md after compaction. It does not edit the notes file for you.
 
 ### IMPLEMENTATION_NOTES discipline
 
 IMPLEMENTATION_NOTES.md stays useful only if it is actively maintained:
 
-1. **Rule 5 in AGENT.md** — The agent should update notes at meaningful checkpoints: before commit boundaries, before context compaction, and whenever decisions or blockers change.
+1. **Rule 5 in AGENTS.md** — The agent should update notes at meaningful checkpoints: before commit boundaries, before context compaction, and whenever decisions or blockers change.
 
 2. **`/notes` skill** — Use it to generate a focused update from the current git state when you want an explicit checkpoint.
 
-3. **PreCompact hook** — Before context compaction, the hook injects a reminder so the next session re-reads AGENT.md and IMPLEMENTATION_NOTES.md.
+3. **PreCompact hook** — Before context compaction, the hook injects a reminder so the next session re-reads AGENTS.md and IMPLEMENTATION_NOTES.md.
 
 ---
 
@@ -462,7 +462,7 @@ IMPLEMENTATION_NOTES.md stays useful only if it is actively maintained:
 | Ignoring REVIEW.md | The second opinion exists for a reason | Read every review. Act on WARN and FAIL. |
 | Massive uncommitted changes | Context loss, hard to review, hard to revert | Commit every meaningful progress (Rule 2) |
 | Adding dependencies casually | Dependency = maintenance burden × project count | Justify in IMPLEMENTATION_NOTES.md (Rule 7) |
-| Writing AGENT.md in non-English | LLMs perform measurably better with English prompts | All artifacts in English (Rule 15) |
+| Writing AGENTS.md in non-English | LLMs perform measurably better with English prompts | All artifacts in English (Rule 15) |
 | Using `--no-verify` habitually | Bypasses all quality gates | Emergency only. If you bypass often, your hook is misconfigured. |
 | Not running `/continue` after breaks | You're working with stale context | Always `/continue` when resuming work |
 
@@ -473,14 +473,14 @@ IMPLEMENTATION_NOTES.md stays useful only if it is actively maintained:
 ### Session start
 - [ ] `cd` to project directory
 - [ ] Run `/continue` to recover context
-- [ ] Verify AGENT.md is current
+- [ ] Verify AGENTS.md is current
 
 ### During work
 - [ ] Follow the cycle appropriate to the work type (full for features, short for bug fixes)
 - [ ] Commit regularly (small, coherent commits)
 - [ ] IMPLEMENTATION_NOTES.md is current before commit/compaction (Rule 5)
 - [ ] Read REVIEW.md after each commit
-- [ ] After fixing a complex bug, add it to AGENT.md Known Pitfalls
+- [ ] After fixing a complex bug, add it to AGENTS.md Known Pitfalls
 
 ### Session end
 - [ ] Verify all changes are committed
@@ -532,11 +532,11 @@ Transparency on what comes from antirez and what is our adaptation.
 | Pattern: Claude generates, Codex reviews | gist + tweet PR Redis #14661 | antirez verbatim |
 | Command `cat ... \| codex exec` | gist CLAUDE_CODEX_SKILL.md | antirez verbatim |
 | IMPLEMENTATION_NOTES.md with post-compaction re-read | HN comment on iris.c | antirez verbatim |
-| AGENT.md as project instruction file | repos iris.c, voxtral.c, ZOT | antirez verbatim (evolved from CLAUDE.md) |
+| AGENTS.md as project instruction file | repos iris.c, voxtral.c, ZOT | antirez verbatim (evolved from CLAUDE.md) |
 | Brain dump spec before coding | antirez.com/news/154, news/160 | antirez verbatim |
 | Parallel sessions in cloned directories | tweet March 2026 | antirez verbatim |
-| CLAUDE.md → AGENT.md evolution | recent repos (iris.c, qwen-asr, tgterm) | antirez verbatim |
-| Rules 1-12 | CLAUDE.md/AGENT.md across repos | antirez verified |
+| CLAUDE.md → AGENTS.md evolution | recent repos (iris.c, qwen-asr, tgterm) | antirez verbatim |
+| Rules 1-12 | CLAUDE.md/AGENTS.md across repos | antirez verified |
 | Skill `/spec` (interactive) | — | our adaptation |
 | Skill `/research` | — | our addition (Phase B automation) |
 | Skill `/notes` | — | our adaptation of antirez's IMPLEMENTATION_NOTES pattern |
@@ -548,11 +548,11 @@ Transparency on what comes from antirez and what is our adaptation.
 | Rules 13-15 (consulting additions) | — | our additions for consulting context |
 | `--sandbox danger-full-access --approval-mode never` mode for Codex | Codex CLI docs + user requirement | our choice (antirez uses default) |
 | `--model gpt-5.4` explicit | user screenshot + preference | user's choice |
-| AGENTS.md symlink to AGENT.md | — | our compatibility solution |
+| AGENTS.md symlink to AGENTS.md | — | our compatibility solution |
 | English-only artifacts rule | antirez recommendation + LLM performance data | our formalization |
 | Automatic IMPLEMENTATION_NOTES.md (Rule 5 reinforced) | antirez's WIP log pattern | our automation of antirez's manual discipline |
 | Cycle variants by work type (full/short/minimal) | implicit in antirez practice | our formalization |
-| Known Pitfalls accumulation pattern | iris.c, qwen-asr AGENT.md | antirez verified, our formalization as mandatory practice |
+| Known Pitfalls accumulation pattern | iris.c, qwen-asr AGENTS.md | antirez verified, our formalization as mandatory practice |
 
 ---
 

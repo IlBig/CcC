@@ -11,10 +11,10 @@ You are guiding the user through creating a SPEC.md for: **$ARGUMENTS**
 
 ## Step 1 — Gather context
 
-Read AGENT.md if it exists in the current directory for additional context.
+Read AGENTS.md if it exists in the current directory for additional context.
 
 ```!
-cat AGENT.md 2>/dev/null || echo "No AGENT.md found"
+cat AGENTS.md 2>/dev/null || echo "No AGENTS.md found"
 ```
 
 ## Step 2 — Ask targeted questions
@@ -23,7 +23,7 @@ Ask the user these questions **one at a time**. Wait for each answer before proc
 For each question, explain WHY you are asking it and give a concrete EXAMPLE of a good answer.
 Adapt based on answers — skip questions already answered by context, topic argument, or previous answers.
 
-**IMPORTANT — Language:** The conversation language is defined in AGENT.md (read above in Step 1). Converse with the user ENTIRELY in that language — questions, rationale, examples, follow-ups, everything. The questions below are reference material in English; translate them naturally. Only the final SPEC.md output file is written in English.
+**IMPORTANT — Language:** The conversation language is defined in AGENTS.md (read above in Step 1). Converse with the user ENTIRELY in that language — questions, rationale, examples, follow-ups, everything. The questions below are reference material in English; translate them naturally. Only the final SPEC.md output file is written in English.
 
 **Core questions (always ask 1-4):**
 
@@ -71,10 +71,10 @@ Based on the answers, generate a complete SPEC.md with these sections (omit empt
 
 Write the file to `SPEC.md` in the project root.
 
-## Step 4 — Offer to scaffold AGENT.md
+## Step 4 — Offer to scaffold AGENTS.md
 
-After writing SPEC.md, ask the user if they also want to generate the initial AGENT.md.
-If yes, generate it using the AGENT.md template, pre-filled with information from the spec.
+After writing SPEC.md, ask the user if they also want to generate the initial AGENTS.md.
+If yes, generate it using the AGENTS.md template, pre-filled with information from the spec.
 
 ## Rules
 

@@ -10,7 +10,7 @@ allowed-tools: Bash(codex *) Bash(git *) Bash(cat *) Read
 ## Project context
 
 ```!
-cat AGENT.md 2>/dev/null || echo "No AGENT.md found"
+cat AGENTS.md 2>/dev/null || echo "No AGENTS.md found"
 ```
 
 ## Recent changes

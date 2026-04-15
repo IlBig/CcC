@@ -46,7 +46,7 @@ Add a new entry at the top of the session log (most recent first) with:
 
 ## Rules
 
-- Converse with the user in the language specified in AGENT.md. Write the notes file in English.
+- Converse with the user in the language specified in AGENTS.md. Write the notes file in English.
 - Be specific — reference actual file names, function names, line numbers
 - Keep entries concise but complete enough to reconstruct context from scratch
 - Do not delete or modify previous entries

@@ -65,8 +65,8 @@ fi
 
 # --- Read project context ---
 AGENT_CONTEXT=""
-if [ -f "AGENT.md" ]; then
-    AGENT_CONTEXT=$(cat AGENT.md)
+if [ -f "AGENTS.md" ]; then
+    AGENT_CONTEXT=$(cat AGENTS.md)
 fi
 
 # --- Build review prompt ---
