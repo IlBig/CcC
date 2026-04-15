@@ -22,7 +22,8 @@ cat AGENT.md 2>/dev/null || echo "No AGENT.md found"
 Ask the user these questions **one at a time**. Wait for each answer before proceeding.
 For each question, explain WHY you are asking it and give a concrete EXAMPLE of a good answer.
 Adapt based on answers — skip questions already answered by context, topic argument, or previous answers.
-Converse in the user's language, but write SPEC.md in English.
+
+**IMPORTANT — Language:** The questions, rationale, and examples below are written in English as reference. You MUST translate them and converse entirely in the user's language (detect it from the topic argument or conversation context). Only the final SPEC.md output file is written in English.
 
 **Core questions (always ask 1-4):**
 
