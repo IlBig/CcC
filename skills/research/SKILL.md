@@ -70,6 +70,7 @@ Write `RESEARCH.md` in the project root with this structure:
 
 ## Rules
 
+- Converse with the user in the language specified in AGENT.md. Write output files in English.
 - Always cite sources with URLs
 - Distinguish between verified facts and inferences
 - If you cannot access a source, say so explicitly — do not invent content

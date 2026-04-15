@@ -36,6 +36,10 @@ Use ASCII diagrams where helpful.]
 14. Comment code only where the logic is not self-evident
 15. All project artifacts in English (AGENT.md, SPEC.md, comments, commit messages)
 
+## Conversation language
+
+Converse with the user in **[Conversation Language]**. All output files (AGENT.md, SPEC.md, code comments, commit messages) remain in English.
+
 ## How to test
 
 ```bash

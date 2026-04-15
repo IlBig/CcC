@@ -97,6 +97,15 @@ if [ -d "./$PROJECT_NAME" ]; then
     error "Directory ./$PROJECT_NAME already exists. Aborting."
 fi
 
+# =============================================================================
+# Step 2b: Ask conversation language
+# =============================================================================
+
+OS_LOCALE=$(defaults read -g AppleLocale 2>/dev/null || echo "${LANG:-en}" | cut -d. -f1)
+echo -en "${CYAN}[ccc]${NC} Conversation language [$OS_LOCALE]: "
+read -r USER_LANG
+USER_LANG="${USER_LANG:-$OS_LOCALE}"
+
 CAN_INITIAL_COMMIT=1
 if ! git config --get user.name >/dev/null 2>&1 || ! git config --get user.email >/dev/null 2>&1; then
     CAN_INITIAL_COMMIT=0
@@ -137,7 +146,7 @@ mkdir -p .claude/skills/continue
 mkdir -p hooks
 
 # --- Copy and transform templates ---
-sed "s|\[Project Name\]|$PROJECT_NAME|g" "$SRC/templates/AGENT.md.template" > AGENT.md
+sed "s|\[Project Name\]|$PROJECT_NAME|g; s|\[Conversation Language\]|$USER_LANG|g" "$SRC/templates/AGENT.md.template" > AGENT.md
 cp "$SRC/templates/CLAUDE.md.template" CLAUDE.md
 sed "s|\[Project Name\]|$PROJECT_NAME|g" "$SRC/templates/SPEC.md.template" > SPEC.md
 sed "s|\[Project Name\]|$PROJECT_NAME|g" "$SRC/templates/IMPLEMENTATION_NOTES.md.template" > IMPLEMENTATION_NOTES.md

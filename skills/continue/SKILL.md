@@ -48,7 +48,7 @@ git diff --stat 2>/dev/null || echo "No uncommitted changes"
 
 ## Your task
 
-You have just recovered from a context compaction or session restart. Based on the files above:
+Converse with the user in the language specified in AGENT.md. Based on the files above:
 
 1. **Summarize the current state** of the project in 3-5 sentences
 2. **Identify where work left off** from IMPLEMENTATION_NOTES.md
