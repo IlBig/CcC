@@ -164,9 +164,6 @@ chmod +x .git/hooks/pre-commit
 cp "$SRC/hooks/pre-compaction.sh" hooks/pre-compaction.sh
 chmod +x hooks/pre-compaction.sh
 
-# --- Create CLAUDE.md redirect ---
-# CLAUDE.md is copied from template (contains "See AGENTS.md")
-
 # --- Generate .claude/settings.json ---
 cat > .claude/settings.json <<'EOF'
 {
