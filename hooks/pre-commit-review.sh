@@ -71,27 +71,51 @@ fi
 
 # --- Build review prompt ---
 REVIEW_PROMPT="You are a senior code reviewer performing a pre-commit review.
-You have FULL AUTONOMY to read and fix files.
+You have FULL AUTONOMY to read and fix files in the working tree.
 
-## Project context
+## Project context (AGENTS.md)
 ${AGENT_CONTEXT}
 
 ## Staged changes to review
 ${DIFF}
 
-## Instructions
-1. Review the staged diff for: bugs, security issues, logic errors, style violations
-2. If you find fixable issues, FIX THEM directly in the source files
-3. Write your review verdict as the LAST LINE of your response in this exact format:
-   VERDICT: PASS
-   or
-   VERDICT: WARN — [brief reason]
-   or
-   VERDICT: FAIL — [brief reason]
+## Phase 1 — THINK
+Before touching any file, silently identify in the diff:
+- Correctness bugs (off-by-one, null handling, wrong branch, race conditions)
+- Security issues (injection, path traversal, unescaped input, leaked secrets)
+- Logic errors that contradict AGENTS.md rules or the project spec
+- Dead code, unreachable branches, misleading names
+- Style violations that obscure intent (not trivial formatting)
 
-PASS = no issues found
-WARN = minor issues found (fixed or cosmetic) — commit should proceed
-FAIL = critical issues that could not be auto-fixed — commit should be blocked"
+## Phase 2 — FIX (scope-limited)
+For each issue above, decide:
+- Is the fix OBVIOUSLY correct (high confidence, single unambiguous change)? If yes, apply it now.
+- Is it ambiguous, requires new features, or changes public behavior? Do NOT fix — report under 'Recommendations'.
+Never add new features, new dependencies, or refactor unrelated code. Do not touch files outside the diff unless they are required to compile/test.
+
+## Phase 3 — REPORT
+Write your review in this exact structure:
+
+### Issues found
+- [FILE:LINE] [severity: bug/security/style/test] description
+
+### Fixes applied
+- [FILE:LINE] what was changed — confidence: HIGH/MED/LOW — why
+
+### Recommendations (not auto-fixed)
+- description + why it was not applied
+
+### VERDICT
+As the LAST LINE of your response, write exactly one of:
+  VERDICT: PASS
+  VERDICT: WARN — <brief reason>
+  VERDICT: FAIL — <brief reason>
+
+Rules:
+- PASS = no issues, or only cosmetic ones resolved during this run
+- WARN = minor issues (fixed, or safe to defer); commit proceeds
+- FAIL = critical bug/security/compliance issue that could not be auto-fixed; commit is blocked
+- Do NOT emit multiple VERDICT lines; only the final one is parsed."
 
 echo -e "${CYAN}[pre-commit] Running Codex review (${CODEX_MODEL})...${NC}"
 

@@ -22,7 +22,7 @@ workflow/
 │   └── pre-compaction.sh           # Claude PreCompact hook: injects context recovery reminder
 └── templates/
     ├── AGENTS.md.template            # Primary AI instruction file template
-    ├── CLAUDE.md.template           # Redirect template ("See AGENTS.md")
+    ├── CLAUDE.md.template           # Redirect template pointing Claude Code back to AGENTS.md
     ├── SPEC.md.template             # Project specification template
     └── IMPLEMENTATION_NOTES.md.template  # Living session diary template
 ```
@@ -31,7 +31,7 @@ workflow/
 <!-- AUTO-MANAGED: conventions -->
 ## Conventions
 
-- **AGENTS.md is primary** — contains all AI instructions; CLAUDE.md in projects contains only `See AGENTS.md`
+- **AGENTS.md is primary** — contains all AI instructions; CLAUDE.md in projects is a short redirect back to AGENTS.md
 - **New project:** `ccc MyProject` — bootstraps everything automatically (installs tools if needed, clones repo, copies files, inits git, launches Claude Code)
 - **Manual skills install:** copy `skills/*` to `.claude/skills/` (project) or `~/.claude/skills/` (global)
 - **Manual hook install:** `cp hooks/pre-commit-review.sh .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit`

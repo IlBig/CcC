@@ -1,1 +1,5 @@
-See AGENTS.md
+# CLAUDE.md — redirect
+
+All AI instructions for this project live in **AGENTS.md** (read by both Claude Code and Codex CLI). This redirect exists so Claude Code picks up the shared rules without duplicating them.
+
+On session start, and after every context compaction, read AGENTS.md. When in doubt, run `/continue` to rebuild full context from AGENTS.md + SPEC.md + IMPLEMENTATION_NOTES.md.

@@ -20,21 +20,30 @@ Use ASCII diagrams where helpful.]
 
 ## Development rules
 
-1. Keep code simple and clean — no dead code
-2. Commit after every meaningful progress
-3. Write thorough tests — run with `[test command]`
-4. Do not stop to ask for confirmation — the user is not at the keyboard
-5. Maintain a work-in-progress log in IMPLEMENTATION_NOTES.md
-6. Re-read this file after every context compaction
-7. No additional dependencies without explicit approval
-8. No marginal improvements (<1%) that add complexity
-9. Never commit unrelated/unstaged files
-10. Read source-of-truth files before modifying
-11. Keep this file aligned with the actual workflow and tests
-12. Update README.md if CLI/runtime behavior changes
-13. Do not access the internet without explicit permission
-14. Comment code only where the logic is not self-evident
-15. All project artifacts in English (AGENTS.md, SPEC.md, comments, commit messages)
+### Workflow-specific (CcC)
+1. **Phase discipline.** Use `/spec` for new features or architectural changes before writing code; use `/research` when touching unfamiliar tech; use `/notes` at the end of each session; use `/continue` to recover context after compaction.
+2. **Pre-flight every commit.** Before `git commit`, ask yourself: "Will Codex block this?" Stage a clean worktree, split oversized diffs (default cap: 5000 lines), ensure the diff addresses a single concern. The pre-commit hook will auto-run Codex; treat its VERDICT as authoritative.
+3. **Read REVIEW.md before finalizing a commit.** If Codex applied non-trivial fixes or left a `WARN`, summarize that context in the commit body so history stays auditable.
+4. **Re-read this file after every context compaction** (pre-compaction hook injects a reminder — follow it).
+5. **Maintain IMPLEMENTATION_NOTES.md.** One entry per session: status, what was done, decisions, open questions, next steps.
+
+### Code quality
+6. Keep code simple — no dead code, no speculative abstractions
+7. Do NOT add features beyond what the spec / user request covers
+8. Comment only where the logic is non-obvious; well-named identifiers beat comments
+9. Read the source-of-truth files before modifying anything
+10. Never commit unrelated/unstaged files
+
+### Interaction & safety
+11. Do not stop to ask for confirmation on routine decisions — the user is not at the keyboard for every step
+12. Ask before destructive operations (rm -rf, force push, schema drops, external messages)
+13. Internet access is restricted to the `/research` skill. Outside that skill, do not run WebSearch/WebFetch or install new remote dependencies without explicit user permission.
+14. No new dependencies without explicit approval
+
+### Deliverables
+15. All project artifacts in English (AGENTS.md, SPEC.md, code comments, commit messages). Converse with the user in the configured conversation language.
+16. Keep this file aligned with the actual workflow and tests. Update README.md if CLI/runtime behavior changes.
+17. Run `[test command]` before declaring a task done.
 
 ## Conversation language
 

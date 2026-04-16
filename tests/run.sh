@@ -56,7 +56,7 @@ make_repo() {
     git -C "$repo" config user.email "test@example.com"
     cp "$ROOT_DIR/hooks/pre-commit-review.sh" "$repo/.git/hooks/pre-commit"
     chmod +x "$repo/.git/hooks/pre-commit"
-    printf 'REVIEW.md\n.claude/auto-memory/\n' > "$repo/.gitignore"
+    printf 'REVIEW.md\n.claude/auto-memory/\n.claude/sessions/\n' > "$repo/.gitignore"
     git -C "$repo" add .gitignore
     git -C "$repo" commit -q --no-verify -m "chore: init"
 }
@@ -139,7 +139,17 @@ test_pre_commit_blocks_dirty_worktree() {
 
     make_repo "$repo"
 
-    make_fake_codex_bin "$bin_dir" 'printf "VERDICT: PASS\n" > "${@: -1}"'
+    make_fake_codex_bin "$bin_dir" '
+outfile=""
+prev=""
+for arg in "$@"; do
+    if [ "$prev" = "-o" ]; then
+        outfile="$arg"
+    fi
+    prev="$arg"
+done
+printf "VERDICT: PASS\n" > "$outfile"
+'
 
     printf 'tracked\n' > "$repo/tracked.txt"
     git -C "$repo" add tracked.txt
@@ -162,6 +172,35 @@ test_pre_commit_blocks_dirty_worktree() {
     pass "pre-commit blocks dirty worktrees"
 }
 
+test_pre_commit_allows_ignored_claude_sessions() {
+    local repo="$TMP_ROOT/hook-ignored-sessions"
+    local bin_dir="$TMP_ROOT/bin-ignored-sessions"
+
+    make_repo "$repo"
+
+    make_fake_codex_bin "$bin_dir" '
+outfile=""
+prev=""
+for arg in "$@"; do
+    if [ "$prev" = "-o" ]; then
+        outfile="$arg"
+    fi
+    prev="$arg"
+done
+printf "VERDICT: PASS\n" > "$outfile"
+'
+
+    mkdir -p "$repo/.claude/sessions"
+    printf '{"session":"runtime"}\n' > "$repo/.claude/sessions/session.jsonl"
+    printf 'content\n' > "$repo/file.txt"
+    git -C "$repo" add file.txt
+
+    PATH="$bin_dir:$PATH" git -C "$repo" commit -q -m "ignored session files"
+    git -C "$repo" rev-parse --verify HEAD >/dev/null || fail "commit should succeed with ignored Claude session files present"
+    assert_not_exists_in_commit "$repo" ".claude/sessions/session.jsonl" "ignored Claude session files should not be committed"
+    pass "pre-commit ignores Claude session runtime files when they are gitignored"
+}
+
 test_pre_compaction_prompt_uses_continue() {
     local repo="$TMP_ROOT/precompact"
     local output
@@ -171,7 +210,7 @@ test_pre_compaction_prompt_uses_continue() {
     output=$(cd "$repo" && "$ROOT_DIR/hooks/pre-compaction.sh")
 
     assert_contains "$output" '"hookEventName": "PreCompact"' "PreCompact hook did not output hook metadata"
-    assert_contains "$output" 'Use /continue if needed.' "PreCompact hook still references the legacy /resume command"
+    assert_contains "$output" '/continue' "PreCompact hook still references the legacy /resume command"
     pass "pre-compaction emits the /continue reminder"
 }
 
@@ -236,9 +275,10 @@ EOF
 
     assert_contains "$output" "initial commit will be skipped" "ccc did not warn about missing git identity"
     [ -d "$sandbox/work/Demo/.git" ] || fail "ccc did not create the target repository"
-    [ -L "$sandbox/work/Demo/AGENTS.md" ] || fail "ccc did not create the AGENTS.md symlink"
+    [ -f "$sandbox/work/Demo/AGENTS.md" ] || fail "ccc did not create AGENTS.md"
     assert_file_contains "$sandbox/work/Demo/.gitignore" "REVIEW.md" "Generated .gitignore is missing REVIEW.md"
     assert_file_contains "$sandbox/work/Demo/.gitignore" ".claude/auto-memory/" "Generated .gitignore is missing .claude/auto-memory/"
+    assert_file_contains "$sandbox/work/Demo/.gitignore" ".claude/sessions/" "Generated .gitignore is missing .claude/sessions/"
     if git -C "$sandbox/work/Demo" rev-parse --verify HEAD >/dev/null 2>&1; then
         fail "ccc should skip the initial commit when git identity is missing"
     fi
@@ -248,12 +288,132 @@ EOF
 test_skill_tool_whitelists() {
     assert_file_contains "$ROOT_DIR/skills/continue/SKILL.md" "Bash(cat *)" "/continue is missing Bash(cat *) in allowed-tools"
     assert_file_contains "$ROOT_DIR/skills/notes/SKILL.md" "Bash(cat *)" "/notes is missing Bash(cat *) in allowed-tools"
+    assert_file_contains "$ROOT_DIR/skills/review/SKILL.md" 'git diff "@{upstream}..HEAD"' "/review no longer includes upstream diff coverage"
+    assert_file_contains "$ROOT_DIR/skills/review/SKILL.md" "git diff HEAD" "/review no longer includes worktree diff coverage"
     pass "skills expose the shell commands they use"
+}
+
+test_pre_commit_allows_warn_verdict() {
+    local repo="$TMP_ROOT/hook-warn"
+    local bin_dir="$TMP_ROOT/bin-warn"
+
+    make_repo "$repo"
+
+    make_fake_codex_bin "$bin_dir" '
+outfile=""
+prev=""
+for arg in "$@"; do
+    if [ "$prev" = "-o" ]; then
+        outfile="$arg"
+    fi
+    prev="$arg"
+done
+printf "VERDICT: WARN - minor cosmetic issue\n" > "$outfile"
+'
+
+    printf 'content\n' > "$repo/file.txt"
+    git -C "$repo" add file.txt
+
+    PATH="$bin_dir:$PATH" git -C "$repo" commit -q -m "warn verdict"
+    assert_file_contains "$repo/REVIEW.md" "VERDICT: WARN" "REVIEW.md missing WARN verdict"
+    git -C "$repo" rev-parse --verify HEAD >/dev/null || fail "commit should succeed on WARN verdict"
+    pass "pre-commit allows WARN verdict"
+}
+
+test_pre_commit_blocks_oversized_diff() {
+    local repo="$TMP_ROOT/hook-big"
+    local bin_dir="$TMP_ROOT/bin-big"
+    local output
+
+    make_repo "$repo"
+    make_fake_codex_bin "$bin_dir" 'printf "VERDICT: PASS\n" > "${@: -1}"'
+
+    # Generate a diff much larger than MAX_DIFF_LINES (50 lines here)
+    local i=0
+    : > "$repo/big.txt"
+    while [ "$i" -lt 200 ]; do
+        printf 'line %s\n' "$i" >> "$repo/big.txt"
+        i=$((i + 1))
+    done
+    git -C "$repo" add big.txt
+
+    set +e
+    output=$(MAX_DIFF_LINES=50 PATH="$bin_dir:$PATH" git -C "$repo" commit -m "oversized" 2>&1)
+    local status=$?
+    set -e
+
+    if [ "$status" -eq 0 ]; then
+        fail "pre-commit should block when diff exceeds MAX_DIFF_LINES"
+    fi
+    assert_contains "$output" "Diff too large" "pre-commit did not report oversized diff"
+    pass "pre-commit blocks oversized diffs"
+}
+
+test_pre_commit_blocks_malformed_verdict() {
+    local repo="$TMP_ROOT/hook-bad-verdict"
+    local bin_dir="$TMP_ROOT/bin-bad-verdict"
+    local output
+
+    make_repo "$repo"
+    make_fake_codex_bin "$bin_dir" '
+outfile=""
+prev=""
+for arg in "$@"; do
+    if [ "$prev" = "-o" ]; then
+        outfile="$arg"
+    fi
+    prev="$arg"
+done
+printf "VERDICT: okay\n" > "$outfile"
+'
+
+    printf 'content\n' > "$repo/file.txt"
+    git -C "$repo" add file.txt
+
+    set +e
+    output=$(PATH="$bin_dir:$PATH" git -C "$repo" commit -m "bad verdict" 2>&1)
+    local status=$?
+    set -e
+
+    if [ "$status" -eq 0 ]; then
+        fail "pre-commit should block when verdict is unrecognized"
+    fi
+    assert_contains "$output" "Unrecognized verdict" "pre-commit did not reject malformed verdict"
+    pass "pre-commit blocks malformed verdict lines"
+}
+
+test_pre_commit_blocks_missing_review_file() {
+    local repo="$TMP_ROOT/hook-no-review"
+    local bin_dir="$TMP_ROOT/bin-no-review"
+    local output
+
+    make_repo "$repo"
+    # Codex exits 0 but writes nothing to the output file
+    make_fake_codex_bin "$bin_dir" 'exit 0'
+
+    printf 'content\n' > "$repo/file.txt"
+    git -C "$repo" add file.txt
+
+    set +e
+    output=$(PATH="$bin_dir:$PATH" git -C "$repo" commit -m "no review" 2>&1)
+    local status=$?
+    set -e
+
+    if [ "$status" -eq 0 ]; then
+        fail "pre-commit should block when Codex leaves no review file"
+    fi
+    assert_contains "$output" "did not produce" "pre-commit did not report missing review file"
+    pass "pre-commit blocks when Codex produces no review"
 }
 
 test_pre_commit_blocks_failed_codex
 test_pre_commit_restages_codex_fixes
 test_pre_commit_blocks_dirty_worktree
+test_pre_commit_allows_ignored_claude_sessions
+test_pre_commit_allows_warn_verdict
+test_pre_commit_blocks_oversized_diff
+test_pre_commit_blocks_malformed_verdict
+test_pre_commit_blocks_missing_review_file
 test_pre_compaction_prompt_uses_continue
 test_ccc_handles_missing_git_identity
 test_skill_tool_whitelists

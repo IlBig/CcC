@@ -2,6 +2,7 @@
 
 > Living document. Updated during development to survive context compaction.
 > Each entry should capture: what was done, why, and any decisions made.
+> PreCompact does not update this file automatically; use `/notes` or edit it manually before long breaks, commits, or compaction.
 
 ---
 

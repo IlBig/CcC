@@ -26,17 +26,27 @@ This dossier will be used by a coding agent (Claude Code) as reference material 
 
 ## Research process
 
-1. **Identify the technologies** mentioned in the topic and in SPEC.md/AGENTS.md if they exist
-2. **For each technology**, search and fetch:
+1. **Identify the technologies** mentioned in the topic and in SPEC.md/AGENTS.md. Resolve version conflicts with this priority: `$ARGUMENTS` > SPEC.md > AGENTS.md > "latest stable". If a conflict exists (e.g. SPEC says React 16, topic says React 19), surface it to the user before researching.
+2. **Search in parallel first**: batch WebSearch queries for all identified technologies. Once you have authoritative URLs, batch WebFetch calls for those URLs. Do not invent URLs just to satisfy WebFetch, and do not research serially when the questions are independent.
+3. **For each technology**, gather:
    - Official documentation (getting started, API reference, configuration)
    - Best practices and recommended patterns
    - Known issues, breaking changes, gotchas
-   - Version-specific notes (use latest stable unless specified)
-3. **For integration points** between technologies:
+   - Version-specific notes
+4. **For integration points** between technologies:
    - How they connect (adapters, middleware, configuration)
    - Common integration patterns
-   - Known compatibility issues
-4. **Cross-reference** findings to eliminate contradictions
+   - Known compatibility issues (produce a short compatibility matrix: tech × version × notes)
+5. **Cross-reference** findings to eliminate contradictions. If two authoritative sources disagree, keep both and say "Source A says X; Source B says Y — unresolved" rather than picking silently.
+
+## Confidence labeling
+
+Every non-trivial fact in the dossier must be prefixed with a confidence tag:
+- `[HIGH]` — primary official docs, reproducible via public source
+- `[MED]` — multiple independent sources agree, or recent reputable blog
+- `[LOW]` — single source, older than 1 year, or inferred from examples
+
+If a source could not be fetched, write `[UNVERIFIED: <url>]` and explain what was missing.
 
 ## Output format
 

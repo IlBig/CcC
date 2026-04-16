@@ -3,7 +3,7 @@
 # ccc — Claude Code Consulting project bootstrapper
 #
 # Creates a new project with the full CcC workflow structure:
-# AGENT.md, CLAUDE.md, SPEC.md, skills, hooks, settings — ready to go.
+# AGENTS.md, CLAUDE.md, SPEC.md, skills, hooks, settings — ready to go.
 #
 # Usage: ccc [project-name]
 # Install: cp ccc ~/bin/ccc && chmod +x ~/bin/ccc
@@ -102,9 +102,15 @@ fi
 # =============================================================================
 
 OS_LOCALE=$(defaults read -g AppleLocale 2>/dev/null || echo "${LANG:-en}" | cut -d. -f1)
-echo -en "${CYAN}[ccc]${NC} Conversation language [$OS_LOCALE]: "
-read -r USER_LANG
-USER_LANG="${USER_LANG:-$OS_LOCALE}"
+if [ -n "${CCC_LANG:-}" ]; then
+    USER_LANG="$CCC_LANG"
+elif [ -t 0 ]; then
+    echo -en "${CYAN}[ccc]${NC} Conversation language [$OS_LOCALE]: "
+    read -r USER_LANG
+    USER_LANG="${USER_LANG:-$OS_LOCALE}"
+else
+    USER_LANG="$OS_LOCALE"
+fi
 
 CAN_INITIAL_COMMIT=1
 if ! git config --get user.name >/dev/null 2>&1 || ! git config --get user.email >/dev/null 2>&1; then
@@ -123,7 +129,7 @@ SRC="$TEMP_DIR/ccc-source"
 git clone --quiet --depth 1 "$CCC_REPO" "$SRC" || error "Failed to clone $CCC_REPO. Check your internet connection."
 
 # Verify key files exist
-if [ ! -f "$SRC/templates/AGENT.md.template" ]; then
+if [ ! -f "$SRC/templates/AGENTS.md.template" ]; then
     error "Workflow repo is missing expected files. Check $CCC_REPO is correct."
 fi
 
@@ -204,6 +210,7 @@ Thumbs.db
 # Workflow artifacts
 REVIEW.md
 .claude/auto-memory/
+.claude/sessions/
 EOF
 
 # =============================================================================

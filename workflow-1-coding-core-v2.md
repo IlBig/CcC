@@ -102,8 +102,7 @@ Every project using this workflow has these files:
 ```
 project/
 ├── AGENTS.md                    # Primary instruction file for any AI agent
-├── CLAUDE.md                   # Redirect → "See AGENTS.md"
-├── AGENTS.md                   # Symlink → AGENTS.md (Codex compatibility)
+├── CLAUDE.md                    # Redirect to AGENTS.md for Claude Code
 ├── SPEC.md                     # Initial specification (Phase A output)
 ├── IMPLEMENTATION_NOTES.md     # Living development diary
 ├── RESEARCH.md                 # Documentation dossier (Phase B output, optional)
@@ -122,7 +121,7 @@ The single source of truth for any AI agent working on this project. Contains:
 - Project overview
 - File map
 - Architecture
-- Development rules (the 15 hard rules)
+- Development rules (workflow, quality, safety, deliverables)
 - Testing instructions
 - Domain-specific notes
 
@@ -130,9 +129,9 @@ Named `AGENTS.md` (not `CLAUDE.md`) to be agent-agnostic — works with Claude, 
 
 ### CLAUDE.md (redirect)
 
-Contains only: `See AGENTS.md`
+A short redirect that tells Claude Code to read `AGENTS.md` and, after compaction, to use `/continue` when it needs to rebuild context.
 
-This ensures Claude Code picks up the project instructions automatically (it looks for CLAUDE.md by default), while AGENTS.md remains the single source of truth.
+This ensures Claude Code picks up the shared project instructions automatically, while AGENTS.md remains the single source of truth.
 
 ### SPEC.md
 
@@ -253,7 +252,7 @@ Claude searches official documentation, API references, best practices, and know
 Claude generates code following the spec and the project rules in AGENTS.md. This is a normal Claude Code session — no special skill needed.
 
 Key behaviors during generation:
-- Follow the 15 hard rules in AGENTS.md
+- Follow the project rules in AGENTS.md
 - Commit after every meaningful progress
 - Keep IMPLEMENTATION_NOTES.md current before commit/compaction (Rule 5)
 - Do not stop to ask for confirmation
@@ -350,19 +349,15 @@ codex --model gpt-5.4
 
 ### AGENTS.md
 
-If you want Codex to follow project-specific instructions (like Claude follows AGENTS.md), create an `AGENTS.md` file in the project root. Codex CLI reads this automatically.
+If you want Codex to follow project-specific instructions, create an `AGENTS.md` file in the project root. Codex CLI reads this automatically.
 
-Recommendation: symlink AGENTS.md to AGENTS.md to keep a single source of truth:
-
-```bash
-ln -s AGENTS.md AGENTS.md
-```
+No symlink is needed: keep one real `AGENTS.md` file and let `CLAUDE.md` point back to it.
 
 ---
 
-## 6. Hard rules
+## 6. Rules
 
-These rules go in every project's AGENTS.md. They are the operating contract between the human and the AI agents.
+The generated `AGENTS.md` template currently groups rules under workflow-specific, code quality, interaction & safety, and deliverables. The lineage below captures the core operating contract behind that template.
 
 ### From antirez (verified from public repositories)
 

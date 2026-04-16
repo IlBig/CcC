@@ -17,13 +17,18 @@ Read AGENTS.md if it exists in the current directory for additional context.
 cat AGENTS.md 2>/dev/null || echo "No AGENTS.md found"
 ```
 
+## Step 1b — Establish conversation language
+
+- If AGENTS.md exists and contains a `Conversation language` entry, use that.
+- If AGENTS.md is absent OR the language is undeclared, ask the user **once** what language they want to converse in (default: the language of the user's first message). Remember this for the rest of the session; it will be written into AGENTS.md in Step 4.
+
 ## Step 2 — Ask targeted questions
 
 Ask the user these questions **one at a time**. Wait for each answer before proceeding.
 For each question, explain WHY you are asking it and give a concrete EXAMPLE of a good answer.
 Adapt based on answers — skip questions already answered by context, topic argument, or previous answers.
 
-**IMPORTANT — Language:** The conversation language is defined in AGENTS.md (read above in Step 1). Converse with the user ENTIRELY in that language — questions, rationale, examples, follow-ups, everything. The questions below are reference material in English; translate them naturally. Only the final SPEC.md output file is written in English.
+**IMPORTANT — Language:** Use the conversation language established in Step 1b for all prompts, rationale, examples, follow-ups. The questions below are reference material in English; translate them naturally. Only the final SPEC.md output file is written in English.
 
 **Core questions (always ask 1-4):**
 
@@ -57,6 +62,20 @@ Adapt based on answers — skip questions already answered by context, topic arg
    _Why:_ antirez insists on this — "hints about bad solutions that may look good, and why they could be suboptimal" + "hints about very good potential solutions, even if not totally elaborated." AI agents systematically fall into known traps. (antirez news/154, Shape Up Rabbit Holes)
    _Example:_ "We tried polling for real-time updates — caused too many DB queries under load. WebSocket approach looks promising. Also: the legacy API returns dates as strings in DD/MM/YYYY, not ISO 8601 — don't trust the format."
 
+## Step 2b — Validate each answer before advancing
+
+After the user answers a question, run a silent self-check. If the answer is weak, push back once before moving on:
+
+- **Q1 (Problem & users)**: contains a concrete user role + realistic scenario? If "a user" / "someone who" generic, ask for a real role + real task.
+- **Q2 (Acceptance criteria)**: at least one GIVEN/WHEN/THEN? If free prose, restate in GIVEN/WHEN/THEN and ask to confirm.
+- **Q3 (Out of scope)**: at least one explicit NOT? If empty, ask "Is there really nothing you're deferring?"
+- **Q4 (Stack & commands)**: includes exact runnable commands (build/test/run)? If "npm commands", ask for the exact invocations.
+- **Q5 (Domain truth)**: business rules with concrete values / entity list? If generic ("standard business rules"), probe for one concrete rule with numbers.
+- **Q6 (Hard constraints)**: at least one constraint expressed as a number or explicit version? If "fast / secure", ask for numbers.
+- **Q7 (Pitfalls)**: at least one known trap OR one promising direction? If empty, skip.
+
+When the user cannot answer confidently, accept it and mark the gap as `[ASSUMPTION: <what you assumed>]` in the spec (see Step 3).
+
 ## Step 3 — Generate SPEC.md
 
 Based on the answers, generate a complete SPEC.md with these sections (omit empty ones):
@@ -68,6 +87,8 @@ Based on the answers, generate a complete SPEC.md with these sections (omit empt
 - Business logic (rules with examples, edge cases)
 - Acceptance criteria (GIVEN/WHEN/THEN, test strategy)
 - Domain pitfalls (traps, failed approaches, promising directions)
+
+Mark every inference that was NOT explicitly confirmed by the user as `[ASSUMPTION: <reason>]` so the human reviewer can spot them before Phase C.
 
 Write the file to `SPEC.md` in the project root.
 
