@@ -16,7 +16,8 @@ workflow/
 │   ├── research/SKILL.md           # /research — autonomous doc research → RESEARCH.md
 │   ├── review/SKILL.md             # /review — manual Codex cross-review → REVIEW.md
 │   ├── notes/SKILL.md              # /notes — update IMPLEMENTATION_NOTES.md
-│   └── continue/SKILL.md           # /continue — context recovery after compaction
+│   ├── continue/SKILL.md           # /continue — context recovery after compaction
+│   └── update/SKILL.md             # /update — pull latest skills + hooks from upstream
 ├── hooks/
 │   ├── pre-commit-review.sh        # Git pre-commit: auto Codex review on every commit
 │   └── pre-compaction.sh           # Claude PreCompact hook: injects context recovery reminder
@@ -68,4 +69,5 @@ A. Vision → B. Research → C. Generate → D. Review → E. Verify → F. Com
 | `/review` | `REVIEW.md` | `codex exec --sandbox danger-full-access --approval-mode never` |
 | `/notes` | `IMPLEMENTATION_NOTES.md` update helper | git log, git diff |
 | `/continue` | Summary + next-step prompt | git log/status/diff |
+| `/update` | Refreshed skills + hooks (backup under `.claude/backup-<ts>/`) | git clone, cp |
 <!-- END AUTO-MANAGED -->

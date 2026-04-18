@@ -290,7 +290,49 @@ test_skill_tool_whitelists() {
     assert_file_contains "$ROOT_DIR/skills/notes/SKILL.md" "Bash(cat *)" "/notes is missing Bash(cat *) in allowed-tools"
     assert_file_contains "$ROOT_DIR/skills/review/SKILL.md" 'git diff "@{upstream}..HEAD"' "/review no longer includes upstream diff coverage"
     assert_file_contains "$ROOT_DIR/skills/review/SKILL.md" "git diff HEAD" "/review no longer includes worktree diff coverage"
+    assert_file_contains "$ROOT_DIR/skills/update/SKILL.md" "Bash(git *)" "/update is missing Bash(git *) in allowed-tools"
     pass "skills expose the shell commands they use"
+}
+
+test_update_skill_contract() {
+    local skill="$ROOT_DIR/skills/update/SKILL.md"
+    assert_file_contains "$skill" "CCC_REPO" "/update must use CCC_REPO env variable"
+    assert_file_contains "$skill" ".claude/backup-" "/update must back up before overwriting"
+    assert_file_contains "$skill" "SPEC.md" "/update must document that SPEC.md is NOT touched"
+    assert_file_contains "$skill" "AGENTS.md" "/update must document that AGENTS.md is NOT touched"
+    pass "/update skill honors the safety contract"
+}
+
+test_ccc_installs_update_skill() {
+    local sandbox="$TMP_ROOT/ccc-update"
+    local bin_dir="$sandbox/bin"
+    local home_dir="$sandbox/home"
+    local source_repo="$sandbox/source"
+
+    make_source_snapshot_repo "$source_repo"
+    mkdir -p "$bin_dir" "$home_dir" "$sandbox/work"
+
+    for bin in npm claude codex; do
+        cat > "$bin_dir/$bin" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
+        chmod +x "$bin_dir/$bin"
+    done
+
+    set +e
+    (
+        cd "$sandbox/work" && \
+        HOME="$home_dir" GIT_CONFIG_NOSYSTEM=1 PATH="$bin_dir:$PATH" \
+            CCC_REPO="$source_repo" CCC_LANG=en "$ROOT_DIR/ccc" UpdateProj >/dev/null 2>&1
+    )
+    set -e
+
+    [ -f "$sandbox/work/UpdateProj/.claude/skills/update/SKILL.md" ] \
+        || fail "ccc did not install the /update skill"
+    assert_file_contains "$sandbox/work/UpdateProj/.claude/skills/update/SKILL.md" \
+        "CCC_REPO" "installed /update skill is missing the CCC_REPO reference"
+    pass "ccc bootstraps the /update skill"
 }
 
 test_pre_commit_allows_warn_verdict() {
@@ -416,6 +458,8 @@ test_pre_commit_blocks_malformed_verdict
 test_pre_commit_blocks_missing_review_file
 test_pre_compaction_prompt_uses_continue
 test_ccc_handles_missing_git_identity
+test_ccc_installs_update_skill
 test_skill_tool_whitelists
+test_update_skill_contract
 
 printf 'All tests passed.\n'

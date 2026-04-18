@@ -108,7 +108,7 @@ project/
 ├── RESEARCH.md                 # Documentation dossier (Phase B output, optional)
 ├── REVIEW.md                   # Latest Codex review output (auto-generated)
 ├── .claude/
-│   ├── skills/                 # Workflow skills (spec, research, review, notes, continue)
+│   ├── skills/                 # Workflow skills (spec, research, review, notes, continue, update)
 │   └── settings.json           # PreCompact hook configuration
 ├── hooks/
 │   └── pre-compaction.sh       # PreCompact hook handler
@@ -290,7 +290,7 @@ The commit triggers the Codex review hook automatically (Phase D). If it passes,
 
 ## 4. Skills
 
-Five skills installed in the workflow. To use globally, copy to `~/.claude/skills/`.
+Six skills installed in the workflow. To use globally, copy to `~/.claude/skills/`.
 
 | Skill | Invocation | Purpose |
 |-------|-----------|---------|
@@ -299,6 +299,7 @@ Five skills installed in the workflow. To use globally, copy to `~/.claude/skill
 | `/review` | `/review` | Manual cross-review with Codex |
 | `/notes` | `/notes` | Manual override: update IMPLEMENTATION_NOTES.md |
 | `/continue` | `/continue` | Recover context after compaction or session restart |
+| `/update` | `/update` | Pull the latest skills + hooks from the CcC repo (keeps a backup) |
 
 ### Installation
 
@@ -321,6 +322,8 @@ cp -r skills/* ~/.claude/skills/
 **`/notes`** — Helper for updating IMPLEMENTATION_NOTES.md. Use it when you want to capture the current state explicitly (e.g., before a long break, after a design decision, or before compaction).
 
 **`/continue`** — Context recovery after compaction or session restart. Reads AGENTS.md, SPEC.md, IMPLEMENTATION_NOTES.md, RESEARCH.md, and git history. Summarizes current state and asks where to continue. **This is always the first command when resuming work.**
+
+**`/update`** — Pulls the latest skills and hooks from the upstream CcC repo (`CCC_REPO` env, defaults to `https://github.com/IlBig/CcC.git`). Before overwriting, saves the current versions to `.claude/backup-<timestamp>/` so you can roll back or re-apply local customizations. Never touches project artifacts (SPEC.md, AGENTS.md, RESEARCH.md, IMPLEMENTATION_NOTES.md, `.claude/settings.json`, source code) — only the workflow machinery.
 
 ---
 

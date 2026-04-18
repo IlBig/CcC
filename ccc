@@ -149,6 +149,7 @@ mkdir -p .claude/skills/research
 mkdir -p .claude/skills/review
 mkdir -p .claude/skills/notes
 mkdir -p .claude/skills/continue
+mkdir -p .claude/skills/update
 mkdir -p hooks
 
 # --- Copy and transform templates ---
@@ -163,6 +164,7 @@ cp "$SRC/skills/research/SKILL.md" .claude/skills/research/SKILL.md
 cp "$SRC/skills/review/SKILL.md"   .claude/skills/review/SKILL.md
 cp "$SRC/skills/notes/SKILL.md"    .claude/skills/notes/SKILL.md
 cp "$SRC/skills/continue/SKILL.md" .claude/skills/continue/SKILL.md
+cp "$SRC/skills/update/SKILL.md"   .claude/skills/update/SKILL.md
 
 # --- Install hooks ---
 cp "$SRC/hooks/pre-commit-review.sh" .git/hooks/pre-commit
@@ -243,7 +245,7 @@ echo "  AGENTS.md               — AI instruction file (primary, read by Codex 
 echo "  CLAUDE.md               — Redirect to AGENTS.md (for Claude Code)"
 echo "  SPEC.md                 — Project specification template"
 echo "  IMPLEMENTATION_NOTES.md — Session diary"
-echo "  .claude/skills/         — Workflow skills (5)"
+echo "  .claude/skills/         — Workflow skills (6)"
 echo "  .claude/settings.json   — PreCompact hook config"
 echo "  .git/hooks/pre-commit   — Codex auto-review hook"
 echo "  hooks/pre-compaction.sh — PreCompact handler"
